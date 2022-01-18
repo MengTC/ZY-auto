@@ -179,7 +179,7 @@ namespace ns_control
         BOUND(front_wheel_angle,LIMIT_STEERING_ANGLE,-LIMIT_STEERING_ANGLE);
         // convert front wheel angle to steering wheel angle
         chassis_control_command.steer_angle = 
-                24.1066 * front_wheel_angle + 4.8505;
+                - (24.1066 * front_wheel_angle + 4.8505);
         ROS_INFO_STREAM("[Contorl] chassis_control_command steer angle: " << chassis_control_command.steer_angle);
       }
       else{

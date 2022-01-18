@@ -38,6 +38,6 @@ double LQRPathTracking::outputFrontWheelAngle(const double current_speed,
     }
     u = k_vector[p][0] * lateral_error + k_vector[p][1] * dot_lateral_error
        +k_vector[p][2] * heading_error + k_vector[p][3] * dot_heading_error;
-    
+    u = u * 180/M_PI;    
     return u;
 }
