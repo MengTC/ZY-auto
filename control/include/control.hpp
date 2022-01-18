@@ -1,7 +1,7 @@
 #ifndef CONTROL_HPP
 #define CONTROL_HPP
 
-#define LIMIT_STEERING_ANGLE 25
+#define LIMIT_STEERING_ANGLE 20
 #define BOUND(a,MAX,min) {if ((a)>(MAX)){(a)=(MAX);} if((a)<(min)){(a)=(min);}}
 
 #include "autoware_msgs/Lane.h"

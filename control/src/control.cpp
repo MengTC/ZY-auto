@@ -56,6 +56,7 @@ namespace ns_control
   void Control::setLQRParameters(const LQR_para &msg){
     lqr_para = msg;
     lqr_controller.lqr_para_filename = lqr_para.para_filename;
+    lqr_controller.readLQRParameters();
   }
 
   void Control::setControlParameters(const Para &msg){
@@ -130,15 +131,24 @@ namespace ns_control
     
     // calculate front wheel angle
     double front_wheel_angle;
+    ROS_INFO_STREAM("lat control id: " << control_para.lat_controller_id);
     switch (control_para.lat_controller_id){
       case 1: // pure pursuit controller
-        front_wheel_angle = pp_controller.outputFrontWheelAngle(lookahead_ps.pose.position,current_pose);
+        {
+          front_wheel_angle = pp_controller.outputFrontWheelAngle(lookahead_ps.pose.position,current_pose);
+          ROS_INFO_STREAM("Using pure pursuit controller, output: " << front_wheel_angle);  
+        }
+        
         break;
 
       case 2: {// lqr controller
-        double lateral_error = calcRelativeCoordinate(nearest_ps.pose.position, current_pose).y;
+        ROS_INFO("Using lqr controller.");
+        geometry_msgs::PoseStasmped ref_ps;
+        ref_ps = lookahead_ps;
+        double lateral_error = calcRelativeCoordinate(ref_ps.pose.position, current_pose).y;
+        
         tf::Quaternion quat1,quat2;
-        tf::quaternionMsgToTF(nearest_ps.pose.orientation, quat1);
+        tf::quaternionMsgToTF(ref_ps.pose.orientation, quat1);
         tf::quaternionMsgToTF(current_pose.orientation, quat2);
         double roll, pitch, ref_yaw, cur_yaw;
         tf::Matrix3x3(quat1).getRPY(roll, pitch, ref_yaw);
@@ -146,14 +156,19 @@ namespace ns_control
         double heading_error = ref_yaw - cur_yaw;
         double dot_lateral_error = v_y + v_x * heading_error;
         double dot_heading_error = -v_x * curvature + yaw_rate;
+        ROS_INFO_STREAM("lateral error: " << lateral_error << ", dot_lateral_error: " << dot_lateral_error
+                      <<"heading error: " << heading_error << ", dot_heading_error: " << dot_heading_error);
         double tmp[4] = {lateral_error,dot_lateral_error,heading_error,dot_heading_error};
         std::vector<double> current_state(tmp,tmp+4);
         front_wheel_angle = lqr_controller.outputFrontWheelAngle(v_x,current_state);
         }
         break;
 
-      default:
+      default:{
         front_wheel_angle = 0;
+        ROS_WARN("Illegal controller id!");
+      }
+        
         break;
     }
     return front_wheel_angle;
@@ -161,10 +176,6 @@ namespace ns_control
 
   double Control::lonControlUpdate(){
     
-  }
-
-  double Control::stateUpdate(){
-
   }
 
   void Control::runAlgorithm(){
@@ -175,7 +186,7 @@ namespace ns_control
       // Lateral control
       if (control_para.lateral_control_switch){
         // limit front wheel angle
-        double front_wheel_angle = lonControlUpdate();
+        double front_wheel_angle = latControlUpdate();
         BOUND(front_wheel_angle,LIMIT_STEERING_ANGLE,-LIMIT_STEERING_ANGLE);
         // convert front wheel angle to steering wheel angle
         chassis_control_command.steer_angle = 

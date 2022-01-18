@@ -1,8 +1,8 @@
 <launch>
     <!-- start drivers node-->
-    <include file="$(find socketcan_bridge)/launch/socketcan_bridge.launch">
+    <include file="$(find socketcan_bridge)/launch/socketcan_bridge.launch"></include>
     <include file = "$(find canparse)/launch/canparse.launch"></include>
-    <include file = "$(find cansend)/launch/cansend.launch"></include>
+    <!-- <include file = "$(find cansend)/launch/cansend.launch"></include> -->
     <include file = "$(find serial_com)/launch/serial_com.launch"></include>
     <include file = "$(find gps)/launch/gps.launch"></include>
 

@@ -68,6 +68,8 @@ void ControlHandle::loadParameters() {
   nodeHandle_.param<int>("longitudinal_mode",control_para_.longitudinal_mode,1);
   nodeHandle_.param<double>("desired_speed",control_para_.desired_speed,5.0);
   nodeHandle_.param<double>("desired_distance",control_para_.desired_distance,5.0);
+  nodeHandle_.param<int>("lon_controller_id",control_para_.lon_controller_id,1);
+  nodeHandle_.param<int>("lat_controller_id",control_para_.lat_controller_id,1);
   ROS_INFO_STREAM("Longitudinal control enable: "<<control_para_.longitudinal_control_switch
                   << "; Lateral control enable: "<<control_para_.lateral_control_switch);
               

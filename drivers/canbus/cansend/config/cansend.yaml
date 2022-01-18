@@ -1,14 +1,14 @@
-chassis_control_topic_name: /chassis/control_cmd
+chassis_control_topic_name: /control_cmd
 
 cansend_topic_name: /sent_messages
 
 node_rate: 50   # [Herz]
 
 cansend_para:
-  send_mode: 0 # 0 for test and 1 for autonomous driving
-  test_steer_angle: 0
+  send_mode: 1 # 0 for test and 1 for autonomous driving
+  test_steer_angle: 100
   test_acc_pedal: 0
   test_brk_pedal: 0
-  setup_steer_speed: 100
+  setup_steer_speed: 300
   
   

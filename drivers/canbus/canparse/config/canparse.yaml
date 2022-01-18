@@ -1,5 +1,5 @@
 canbus_receive_topic_name: /received_messages
 
-chassis_state_topic_name: /chassis/vehicle_state
+chassis_state_topic_name: /chassis/vehicle_dynamic_state
 
 node_rate: 50   # [Herz]

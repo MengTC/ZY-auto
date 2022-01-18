@@ -4,7 +4,7 @@ pid:
   kd: 0.001
 pure_pursuit:
   mode: fixed  # 1) [fixed] lookahead distance 2) [variable] k_pre * v
-  lookahead_distance: 12.0 # [m]
+  lookahead_distance: 3.0 # [m]
   k_pre: 1.5
 control_switch:
   longitudinal: true # Start: true; Shutdown: false

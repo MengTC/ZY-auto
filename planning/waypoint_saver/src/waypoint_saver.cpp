@@ -92,14 +92,14 @@ void Wp_saver::write2File(nav_msgs::Odometry msg) {
   string yaw_rate = to_string(msg.twist.twist.angular.z);
   
   if (para.record_mode == 0){// record for path tracking 
-    record_file << frame + "," + time + "," + x + "," + y + "," 
+    record_file << frame_s + "," + time + "," + x + "," + y + "," 
           + heading + "," + v_x  + "," + v_y  + "," + yaw_rate << endl;
   }
   else{ // record for virtual platoon test
     record_file << frame + "," + time + "," + x + "," + y + "," 
       + heading + "," + v_x  + "," + v_y  + "," + yaw_rate << endl;
   }
-
+  frame += 1;
   }
 
 }

@@ -18,11 +18,12 @@ class LQRPathTracking{
     private:
         // double control_output;
         std::vector<std::vector<double>> k_vector;
-        void readLQRParameters();
+        
 
     public:
         std::string lqr_para_filename;
         LQRPathTracking();
+        void readLQRParameters();
         double outputFrontWheelAngle(const double current_speed, const std::vector<double> &current_state);
 };
 
