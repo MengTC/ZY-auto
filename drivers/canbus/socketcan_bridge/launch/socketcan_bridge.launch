@@ -1,0 +1,7 @@
+<launch>
+    <node name="socketcan_bridge_node" pkg="socketcan_bridge" type="socketcan_bridge_node" output="screen" respawn="true">
+	<rosparam command="load" file="$(find socketcan_bridge)/config/socketcan_bridge_node.yaml" /> <!--Load parameters from config files-->
+    </node>
+    
+</launch>
+
