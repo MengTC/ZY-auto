@@ -33,6 +33,7 @@ add_executable(
 
 target_link_libraries(
   ros_observer
+  libpthread.so.0
   rt ${Boost_LIBRARIES}
 )
 
