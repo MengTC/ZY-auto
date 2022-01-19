@@ -31,18 +31,23 @@ class ControlHandle {
   ros::Publisher controlCommandPublisher_;
   ros::Publisher lookaheadpointPublisher_;
   ros::Publisher nearestPointPublisher_;
+  ros::Publisher controlStatePublisher_;
+  ros::Publisher replayTriggerPublisher_;
 
   void finalWaypointsCallback(const autoware_msgs::Lane &msg);
-  void vehicleDynamicStateCallback(const common_msgs::VehicleDynamicState &msg); 
+  void vehicleDynamicStateCallback(const common_msgs::ChassisState &msg); 
   void utmPoseCallback(const nav_msgs::Odometry &msg);
+
 
   std::string final_waypoints_topic_name_;
   std::string vehicle_dynamic_state_topic_name_;
   std::string localization_utm_topic_name_;
+
   std::string lookahead_point_topic_name_;
   std::string nearest_point_topic_name_;
-
+  std::string control_state_topic_name_;
   std::string control_command_topic_name_;
+  std::string replay_trigger_topic_name_;
 
   int node_rate_;
   int control_mode_;

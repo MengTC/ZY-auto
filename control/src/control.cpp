@@ -26,12 +26,21 @@ namespace ns_control
     return nearest_point;
   }
 
+  common_msgs::ControlState Control::getControlState(){
+    control_state.header.frame_id = "world";
+    control_state.header.stamp = ros::Time::now();
+  }
+
+  common_msgs::Trigger Control::getReplayTrigger(){
+    replay_trigger.trigger = true;
+  }
+
   // Setters
   void Control::setFinalWaypoints(const autoware_msgs::Lane &msg){
     final_waypoints = msg;
     current_waypoints = final_waypoints.waypoints;
   }
-  void Control::setVehicleDynamicState(const common_msgs::VehicleDynamicState &msg){
+  void Control::setVehicleDynamicState(const common_msgs::ChassisState &msg){
     vehicle_dynamic_state = msg;
     // ROS_INFO_STREAM("[Control]current velocity: " << vehicle_state.twist.linear.x);
   }
@@ -118,8 +127,24 @@ namespace ns_control
     // State update
     double v_x = utm_pose.twist.twist.linear.x;
     double v_y = utm_pose.twist.twist.linear.y;
+
     double yaw_rate = utm_pose.twist.twist.angular.z; 
+    yaw_rate = lateral_speed/ 3.89 / 0.55/ 180.0*M_PI;
     double curvature = 0;
+
+    // calculate yaw 
+    tf::Quaternion quat,near_quat;
+    tf::quaternionMsgToTF(current_pose.orientation, quat);
+    tf::quaternionMsgToTF(nearest_ps.pose.orientation, near_quat);
+    double roll, pitch, near_yaw, cur_yaw;
+    tf::Matrix3x3(quat).getRPY(roll, pitch, near_yaw);
+    tf::Matrix3x3(quat).getRPY(roll, pitch, cur_yaw);
+
+    control_state.lateral_error = calcRelativeCoordinate(nearest_ps.pose.position, current_pose).y;
+    control_state.heading_error = near_yaw - cur_yaw;
+
+    if( heading_error > M_PI) heading_error = heading_error-2*M_PI;
+    else if( heading_error < -M_PI) heading_error = heading_error+ 2*M_PI;
 
     if (pp_para.mode == "variable"){
         lookahead_distance = pp_para.lookahead_distance;
@@ -143,16 +168,14 @@ namespace ns_control
 
       case 2: {// lqr controller
         ROS_INFO("Using lqr controller.");
-        geometry_msgs::PoseStasmped ref_ps;
+        geometry_msgs::PoseStamped ref_ps;
         ref_ps = lookahead_ps;
         double lateral_error = calcRelativeCoordinate(ref_ps.pose.position, current_pose).y;
         
-        tf::Quaternion quat1,quat2;
-        tf::quaternionMsgToTF(ref_ps.pose.orientation, quat1);
-        tf::quaternionMsgToTF(current_pose.orientation, quat2);
-        double roll, pitch, ref_yaw, cur_yaw;
-        tf::Matrix3x3(quat1).getRPY(roll, pitch, ref_yaw);
-        tf::Matrix3x3(quat2).getRPY(roll, pitch, cur_yaw);
+        tf::Quaternion ref_quat;
+        tf::quaternionMsgToTF(ref_ps.pose.orientation, ref_quat);
+        double ref_yaw;
+        tf::Matrix3x3(ref_quat).getRPY(roll, pitch, ref_yaw);
         double heading_error = ref_yaw - cur_yaw;
         double dot_lateral_error = v_y + v_x * heading_error;
         double dot_heading_error = -v_x * curvature + yaw_rate;

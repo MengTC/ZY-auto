@@ -8,7 +8,7 @@ Canparse::Canparse(ros::NodeHandle &nh) : nh_(nh) {
 };
 
 // Getters
-common_msgs::VehicleDynamicState Canparse::getChassisState(){return vehicle_dynamic_state;}
+common_msgs::ChassisState Canparse::getChassisState(){return chassis_state;}
 
 // Setters
 void Canparse::Parse(can_msgs::Frame f) {
@@ -56,7 +56,7 @@ void Canparse::Parse(can_msgs::Frame f) {
     id_0x18FF4BD1.Update(f.data.c_array() );
     // ROS_INFO("18FF4BD1Message:flwStrAgl: %f ; flwStrErrCls: %f ;flwStrErrCod: %f ;",
     // id_0x18FF4BD1.flwStrAgl(),id_0x18FF4BD1.flwStrErrCls(),id_0x18FF4BD1.flwStrErrCod());
-    ROS_INFO_STREAM("Steering_angle: " << id_0x18FF4BD1.flwStrAgl());
+    ROS_INFO_STREAM("actual_steering_angle: " << id_0x18FF4BD1.flwStrAgl());
     break;
 
   case 0x59:
@@ -77,11 +77,13 @@ void Canparse::Parse(can_msgs::Frame f) {
 }
 
 void Canparse::runAlgorithm() {
-  vehicle_dynamic_state.header.frame_id = "base_link";
-  vehicle_dynamic_state.header.stamp = ros::Time::now();
+  chassis_state.header.frame_id = "base_link";
+  chassis_state.header.stamp = ros::Time::now();
   //id_0x18F02501.UpdateflwSpd();
-  vehicle_dynamic_state.vehicle_speed = id_0x18F02501.flwSpd();
-  vehicle_dynamic_state.vehicle_lon_acceleration = id_0x18F02501.flwAcc();
+  chassis_state.vehicle_lon_acceleration = id_0x18F02501.flwAcc();
+  chassis_state.real_acc_pedal = id_0x18F02502.flwPdlAcc();
+  chassis_state.real_brake_pedal = id_0x18F02502.flwPedBrk();
+  chassis_state.real_steer_angle = id_0x18FF4BD1.flwStrAgl();
 }
 
 }

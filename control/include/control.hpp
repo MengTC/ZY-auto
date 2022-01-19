@@ -5,9 +5,11 @@
 #define BOUND(a,MAX,min) {if ((a)>(MAX)){(a)=(MAX);} if((a)<(min)){(a)=(min);}}
 
 #include "autoware_msgs/Lane.h"
-#include "common_msgs/VehicleDynamicState.h"
+#include "common_msgs/ChassisState.h"
 #include "nav_msgs/Odometry.h"
 #include "common_msgs/ChassisControl.h"
+#include "common_msgs/ControlState.h"
+#include "common_msgs/Trigger.h"
 
 #include "std_msgs/String.h"
 #include "pid.hpp"
@@ -36,10 +38,12 @@ class Control {
   common_msgs::ChassisControl getChassisControlCommand();
   geometry_msgs::PointStamped getLookaheadPoint();
   geometry_msgs::PointStamped getNearestPoint();
+  common_msgs::ControlState getControlState();
+  common_msgs::Trigger getReplayTrigger();
 
   // Setters
   void setFinalWaypoints(const autoware_msgs::Lane &msg);
-  void setVehicleDynamicState(const common_msgs::VehicleDynamicState &mgs);
+  void setVehicleDynamicState(const common_msgs::ChassisState &mgs);
   void setUtmPose(const nav_msgs::Odometry &msg);
   void setPidParameters(const Pid_para &msg);
   void setPurePursuitParameters(const Pure_pursuit_para &msg);
@@ -65,8 +69,10 @@ class Control {
   std::vector<autoware_msgs::Waypoint> current_waypoints;
   nav_msgs::Odometry utm_pose;
   geometry_msgs::Pose current_pose;
-  common_msgs::VehicleDynamicState vehicle_dynamic_state;
+  common_msgs::ChassisState vehicle_dynamic_state;
   common_msgs::ChassisControl chassis_control_command;
+  common_msgs::ControlState control_state;
+  common_msgs::Trigger replay_trigger;
 
   PID pid_controller;
   Pure_pursuit pp_controller;
@@ -87,6 +93,7 @@ class Control {
   geometry_msgs::PoseStamped lookahead_ps;
   geometry_msgs::PointStamped nearest_point;
   geometry_msgs::PointStamped lookahead_point;
+
   // int nearest_waypoint_idx;
   // int lookahead_waypoint_idx;
   

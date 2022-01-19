@@ -60,13 +60,13 @@ Visualization Manager:
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
-      Color: 204; 0; 0
+      Color: 136; 138; 133
       Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
       Line Style: Billboards
-      Line Width: 1
+      Line Width: 0.30000001192092896
       Name: Path
       Offset:
         X: 0
@@ -98,13 +98,13 @@ Visualization Manager:
           Value: true
         Value: true
       Enabled: true
-      Keep: 10
+      Keep: 1
       Name: Odometry
       Position Tolerance: 0.10000000149011612
       Shape:
         Alpha: 1
-        Axes Length: 10
-        Axes Radius: 0.5
+        Axes Length: 3
+        Axes Radius: 0.20000000298023224
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
@@ -120,7 +120,7 @@ Visualization Manager:
       Enabled: true
       History Length: 1
       Name: PointStamped
-      Radius: 3
+      Radius: 0.5
       Topic: /control/nearest_point
       Unreliable: false
       Value: true
@@ -130,7 +130,7 @@ Visualization Manager:
       Enabled: true
       History Length: 1
       Name: PointStamped
-      Radius: 3
+      Radius: 0.5
       Topic: /control/lookahead_point
       Unreliable: false
       Value: true
@@ -139,7 +139,7 @@ Visualization Manager:
     Background Color: 211; 215; 207
     Default Light: true
     Fixed Frame: world
-    Frame Rate: 30
+    Frame Rate: 50
   Name: root
   Tools:
     - Class: rviz/Interact
@@ -162,25 +162,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 104.5221176147461
+      Distance: 115.32587432861328
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: -28.12456512451172
+        Y: -24.115699768066406
+        Z: -6.9907989501953125
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.0647963285446167
+      Pitch: 0.15979652106761932
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.5554001331329346
+      Yaw: 1.0607963800430298
     Saved: ~
 Window Geometry:
   Displays:

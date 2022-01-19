@@ -1,0 +1,3 @@
+virtual_vehicle_state_topic_name: /virtual_vehicle_state
+
+replay_trigger_topic_name: /control/replay_trigger

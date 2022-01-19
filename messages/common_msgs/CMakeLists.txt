@@ -19,13 +19,12 @@ find_package(catkin REQUIRED
 
 add_message_files(DIRECTORY msg
   FILES
-    VehicleDynamicState.msg
     GpsInfo.msg
-    ChassisStatus.msg
-    V2V.msg
-    PolarBoundary.msg
-    StopDecision.msg
+    ChassisState.msg
     ChassisControl.msg
+    VirtualVehicleState.msg
+    ControlState.msg
+    Trigger.msg
 )
 
 generate_messages(

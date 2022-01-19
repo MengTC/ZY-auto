@@ -1,0 +1,7 @@
+localization_topic_name: /localization/utmpose
+
+chassis_state_topic_name: /chassis_state
+
+control_command_topic_name: /control_cmd
+
+node_rate: 20   # [Herz]

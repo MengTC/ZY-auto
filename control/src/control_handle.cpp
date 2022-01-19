@@ -59,6 +59,11 @@ void ControlHandle::loadParameters() {
                                       "/control/nearest_point")) {
     ROS_WARN_STREAM("Did not load nearest_point_topic_name. Standard value is: " << nearest_point_topic_name_);
   }
+  if (!nodeHandle_.param<std::string>("control_state_topic_name",
+                                        control_state_topic_name_,
+                                      "/control_state")) {
+    ROS_WARN_STREAM("Did not load control_state_topic_name. Standard value is: " << control_state_topic_name_);
+  }
   if (!nodeHandle_.param("node_rate", node_rate_, 1)) {
     ROS_WARN_STREAM("Did not load node_rate. Standard value is: " << node_rate_);
   }
@@ -103,7 +108,9 @@ void ControlHandle::publishToTopics() {
   ROS_INFO("publish to topics");
   lookaheadpointPublisher_ = nodeHandle_.advertise<geometry_msgs::PointStamped>(lookahead_point_topic_name_, 1);
   nearestPointPublisher_ = nodeHandle_.advertise<geometry_msgs::PointStamped>(nearest_point_topic_name_, 1);
+  controlStatePublisher_ = nodeHandle_.advertise<common_msgs::ControlState>(control_state_topic_name_, 1);
   controlCommandPublisher_ = nodeHandle_.advertise<common_msgs::ChassisControl>(control_command_topic_name_, 1);
+  replayTriggerPublisher_ = nodeHandle_.advertise<common_msgs::Trigger>(replay_trigger_topic_name_,1);
 }  
 
 void ControlHandle::run() {
@@ -115,6 +122,8 @@ void ControlHandle::sendMsg() {
   lookaheadpointPublisher_.publish(control_.getLookaheadPoint());
   nearestPointPublisher_.publish(control_.getNearestPoint());
   controlCommandPublisher_.publish(control_.getChassisControlCommand());
+  controlStatePublisher_.publish(control_.getControlState());
+  replayTriggerPublisher_.publish(control_.getReplayTrigger());
 }
 // Callbacks
 
@@ -123,7 +132,7 @@ void ControlHandle::finalWaypointsCallback(const autoware_msgs::Lane &msg) {
   control_.finalWaypointsFlag = true;
 }
 
-void ControlHandle::vehicleDynamicStateCallback(const common_msgs::VehicleDynamicState &msg){
+void ControlHandle::vehicleDynamicStateCallback(const common_msgs::ChassisState &msg){
   control_.setVehicleDynamicState(msg);
   control_.vehicleDynamicStateFlag = true;
 }

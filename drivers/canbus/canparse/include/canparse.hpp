@@ -1,7 +1,7 @@
 #ifndef CANPARSE_HPP
 #define CANPARSE_HPP
 
-#include "common_msgs/VehicleDynamicState.h"
+#include "common_msgs/ChassisState.h"
 #include "std_msgs/String.h"
 #include <can_msgs/Frame.h>
 #include "ID_0x00000650.h"
@@ -32,7 +32,7 @@ class Canparse {
   ID_0x00000151 id_0x00000151;
 
   // Getters
-  common_msgs::VehicleDynamicState getChassisState();
+  common_msgs::ChassisState getChassisState();
 
   // Setters
   void Parse(can_msgs::Frame f);
@@ -43,7 +43,7 @@ class Canparse {
 
   ros::NodeHandle &nh_;
 
-  common_msgs::VehicleDynamicState vehicle_dynamic_state;
+  common_msgs::ChassisState chassis_state;
 
 };
 }

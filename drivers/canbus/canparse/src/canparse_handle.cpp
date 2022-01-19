@@ -44,7 +44,7 @@ void CanparseHandle::subscribeToTopics() {
 
 void CanparseHandle::publishToTopics() {
   ROS_INFO("publish to topics");
-  chassisStatePublisher_ = nodeHandle_.advertise<common_msgs::VehicleDynamicState>(chassis_state_topic_name_,1);
+  chassisStatePublisher_ = nodeHandle_.advertise<common_msgs::ChassisState>(chassis_state_topic_name_,1);
 }
 
 void CanparseHandle::run() {

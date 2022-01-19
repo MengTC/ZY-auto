@@ -11,5 +11,11 @@ control_command_topic_name: /control_cmd
 lookahead_point_topic_name: /control/lookahead_point
 
 nearest_point_topic_name: /control/nearest_point
+
+control_state_topic_name: /control_state
+
+replay_trigger_topic_name: /control/replay_trigger
+
+
 # control parameters
 node_rate: 50   # [Herz]
