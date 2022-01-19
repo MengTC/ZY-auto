@@ -15,6 +15,7 @@ DataReplayerHandle::DataReplayerHandle(ros::NodeHandle &nodeHandle) :
   data_replayer_.loadLogFile(para_.log_filename);
   subscribeToTopics();
   publishToTopics();
+  replay_trigger_ = false;
 }
 
 // Getters

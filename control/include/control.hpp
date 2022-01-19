@@ -10,6 +10,7 @@
 #include "common_msgs/ChassisControl.h"
 #include "common_msgs/ControlState.h"
 #include "common_msgs/Trigger.h"
+#include "common_msgs/VirtualVehicleState.h"
 
 #include "std_msgs/String.h"
 #include "pid.hpp"
@@ -49,6 +50,7 @@ class Control {
   void setPurePursuitParameters(const Pure_pursuit_para &msg);
   void setLQRParameters(const LQR_para &msg);
   void setControlParameters(const Para &msg);
+  void setVirtualVehicleState(const common_msgs::VirtualVehicleState &msg);
 
   // Methods
   void runAlgorithm();
@@ -60,6 +62,7 @@ class Control {
   bool finalWaypointsFlag = false;
   bool vehicleDynamicStateFlag = false;
   bool utmPoseFlag = false;
+  bool virtualFlag = false;
 
  private:
 
@@ -73,6 +76,7 @@ class Control {
   common_msgs::ChassisControl chassis_control_command;
   common_msgs::ControlState control_state;
   common_msgs::Trigger replay_trigger;
+  common_msgs::VirtualVehicleState virtual_vehicle_state;
 
   PID pid_controller;
   Pure_pursuit pp_controller;

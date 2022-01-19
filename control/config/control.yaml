@@ -1,9 +1,11 @@
 # Subscriber
 final_waypoints_topic_name: /planning/final_waypoints
 
-vehicle_state_topic_name: /chassis/vehicle_dynamic_state
+vehicle_dynamic_state_topic_name: /chassis_state
 
 localization_utm_topic_name: /localization/utmpose
+
+virtual_vehicle_state_topic_name: /virtual_vehicle_state
 
 # Publisher
 control_command_topic_name: /control_cmd

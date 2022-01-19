@@ -27,6 +27,7 @@ class ControlHandle {
   ros::Subscriber finalWaypointsSubscriber_;
   ros::Subscriber vehicleDynamicStateSubscriber_;
   ros::Subscriber utmPoseSubscriber_;
+  ros::Subscriber virtualVehicleStateSubscriber_;
 
   ros::Publisher controlCommandPublisher_;
   ros::Publisher lookaheadpointPublisher_;
@@ -37,11 +38,13 @@ class ControlHandle {
   void finalWaypointsCallback(const autoware_msgs::Lane &msg);
   void vehicleDynamicStateCallback(const common_msgs::ChassisState &msg); 
   void utmPoseCallback(const nav_msgs::Odometry &msg);
+  void virtualVehicleStateCallback(const common_msgs::VirtualVehicleState &msg);
 
 
   std::string final_waypoints_topic_name_;
   std::string vehicle_dynamic_state_topic_name_;
   std::string localization_utm_topic_name_;
+  std::string virtual_vehicle_state_topic_name_;
 
   std::string lookahead_point_topic_name_;
   std::string nearest_point_topic_name_;

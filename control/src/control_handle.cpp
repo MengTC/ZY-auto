@@ -64,6 +64,16 @@ void ControlHandle::loadParameters() {
                                       "/control_state")) {
     ROS_WARN_STREAM("Did not load control_state_topic_name. Standard value is: " << control_state_topic_name_);
   }
+  if (!nodeHandle_.param<std::string>("virtual_vehicle_state_topic_name",
+                                        virtual_vehicle_state_topic_name_,
+                                      "/virtual_vehicle_state")) {
+    ROS_WARN_STREAM("Did not load virtual_vehicle_state_topic_name. Standard value is: " << virtual_vehicle_state_topic_name_);
+  }
+  if (!nodeHandle_.param<std::string>("replay_trigger_topic_name",
+                                        replay_trigger_topic_name_,
+                                      "/control/replay_trigger")) {
+    ROS_WARN_STREAM("Did not load replay_trigger_topic_name. Standard value is: " << replay_trigger_topic_name_);
+  }
   if (!nodeHandle_.param("node_rate", node_rate_, 1)) {
     ROS_WARN_STREAM("Did not load node_rate. Standard value is: " << node_rate_);
   }
@@ -102,6 +112,8 @@ void ControlHandle::subscribeToTopics() {
       nodeHandle_.subscribe(vehicle_dynamic_state_topic_name_, 10, &ControlHandle::vehicleDynamicStateCallback, this);
   utmPoseSubscriber_ = 
       nodeHandle_.subscribe(localization_utm_topic_name_, 10, & ControlHandle::utmPoseCallback, this);
+  virtualVehicleStateSubscriber_ =
+      nodeHandle_.subscribe(virtual_vehicle_state_topic_name_, 10, &ControlHandle::virtualVehicleStateCallback, this);
 }
 
 void ControlHandle::publishToTopics() {
@@ -142,4 +154,8 @@ void ControlHandle::utmPoseCallback(const nav_msgs::Odometry &msg){
   control_.utmPoseFlag = true;
 }
 
+void ControlHandle::virtualVehicleStateCallback(const common_msgs::VirtualVehicleState &msg){
+  control_.setVirtualVehicleState(msg);
+  control_.virtualFlag = true;
+}
 }

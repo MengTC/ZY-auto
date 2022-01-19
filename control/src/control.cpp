@@ -29,10 +29,12 @@ namespace ns_control
   common_msgs::ControlState Control::getControlState(){
     control_state.header.frame_id = "world";
     control_state.header.stamp = ros::Time::now();
+    return control_state;
   }
 
   common_msgs::Trigger Control::getReplayTrigger(){
     replay_trigger.trigger = true;
+    return replay_trigger;
   }
 
   // Setters
@@ -47,6 +49,9 @@ namespace ns_control
   void Control::setUtmPose(const nav_msgs::Odometry &msg){
     utm_pose = msg; 
     current_pose = utm_pose.pose.pose;
+  }
+  void Control::setVirtualVehicleState(const common_msgs::VirtualVehicleState &msg){
+    virtual_vehicle_state = msg;
   }
 
   void Control::setPidParameters(const Pid_para &msg){
@@ -126,10 +131,10 @@ namespace ns_control
   double Control::latControlUpdate(){
     // State update
     double v_x = utm_pose.twist.twist.linear.x;
-    double v_y = utm_pose.twist.twist.linear.y;
+    double v_y = -utm_pose.twist.twist.linear.y;
 
     double yaw_rate = utm_pose.twist.twist.angular.z; 
-    yaw_rate = lateral_speed/ 3.89 / 0.55/ 180.0*M_PI;
+    yaw_rate = v_y/ 3.89 / 0.55/ 180.0*M_PI;
     double curvature = 0;
 
     // calculate yaw 
@@ -143,8 +148,8 @@ namespace ns_control
     control_state.lateral_error = calcRelativeCoordinate(nearest_ps.pose.position, current_pose).y;
     control_state.heading_error = near_yaw - cur_yaw;
 
-    if( heading_error > M_PI) heading_error = heading_error-2*M_PI;
-    else if( heading_error < -M_PI) heading_error = heading_error+ 2*M_PI;
+    if( control_state.heading_error > M_PI) control_state.heading_error = control_state.heading_error-2*M_PI;
+    else if( control_state.heading_error < -M_PI) control_state.heading_error = control_state.heading_error+ 2*M_PI;
 
     if (pp_para.mode == "variable"){
         lookahead_distance = pp_para.lookahead_distance;
@@ -167,26 +172,32 @@ namespace ns_control
         break;
 
       case 2: {// lqr controller
-        ROS_INFO("Using lqr controller.");
-        geometry_msgs::PoseStamped ref_ps;
-        ref_ps = lookahead_ps;
-        double lateral_error = calcRelativeCoordinate(ref_ps.pose.position, current_pose).y;
-        
-        tf::Quaternion ref_quat;
-        tf::quaternionMsgToTF(ref_ps.pose.orientation, ref_quat);
-        double ref_yaw;
-        tf::Matrix3x3(ref_quat).getRPY(roll, pitch, ref_yaw);
-        double heading_error = ref_yaw - cur_yaw;
-        double dot_lateral_error = v_y + v_x * heading_error;
-        double dot_heading_error = -v_x * curvature + yaw_rate;
-        ROS_INFO_STREAM("lateral error: " << lateral_error << ", dot_lateral_error: " << dot_lateral_error
-                      <<"heading error: " << heading_error << ", dot_heading_error: " << dot_heading_error);
-        double tmp[4] = {lateral_error,dot_lateral_error,heading_error,dot_heading_error};
-        std::vector<double> current_state(tmp,tmp+4);
-        front_wheel_angle = lqr_controller.outputFrontWheelAngle(v_x,current_state);
+          ROS_INFO("Using lqr controller.");
+          geometry_msgs::PoseStamped ref_ps;
+          ref_ps = lookahead_ps;
+          double lateral_error = calcRelativeCoordinate(ref_ps.pose.position, current_pose).y;
+          
+          tf::Quaternion ref_quat;
+          tf::quaternionMsgToTF(ref_ps.pose.orientation, ref_quat);
+          double ref_yaw;
+          tf::Matrix3x3(ref_quat).getRPY(roll, pitch, ref_yaw);
+          double heading_error = ref_yaw - cur_yaw;
+          double dot_lateral_error = v_y + v_x * heading_error;
+          double dot_heading_error = -v_x * curvature + yaw_rate;
+          ROS_INFO_STREAM("lateral error: " << lateral_error << ", dot_lateral_error: " << dot_lateral_error
+                        <<"heading error: " << heading_error << ", dot_heading_error: " << dot_heading_error);
+          double tmp[4] = {lateral_error,dot_lateral_error,heading_error,dot_heading_error};
+          std::vector<double> current_state(tmp,tmp+4);
+          front_wheel_angle = lqr_controller.outputFrontWheelAngle(v_x,current_state);
         }
         break;
+      case 3:{
+          ROS_INFO("Feedforward plus feedback.");
+          if (virtualFlag){
 
+          }
+
+      }
       default:{
         front_wheel_angle = 0;
         ROS_WARN("Illegal controller id!");
@@ -214,6 +225,11 @@ namespace ns_control
         // convert front wheel angle to steering wheel angle
         chassis_control_command.steer_angle = 
                 - (24.1066 * front_wheel_angle + 4.8505);
+        // if (virtualFlag){
+        //   chassis_control_command.steer_angle = 0.5 * virtual_vehicle_state.chassis_state.real_steer_angle 
+        //                                       + 0.5 * chassis_control_command.steer_angle;
+        //   ROS_INFO_STREAM("virtual");
+        // }       
         ROS_INFO_STREAM("[Contorl] chassis_control_command steer angle: " << chassis_control_command.steer_angle);
       }
       else{

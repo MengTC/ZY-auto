@@ -70,15 +70,25 @@ filename1 = "reference_path.csv"
 data1,r = get_data_reference(filename1)
 filename2 = "data_logger.csv"
 data2 = get_data(filename2,r)
+filename3 = "data_logger-0119-2.csv"
+data3 = get_data(filename3,r)
+filename4 = "data_logger-0119-3.csv"
+data4 = get_data(filename4,r)
 
 x = data1[:,0]
 y = data1[:,1]
 x_ = data2[:,0]
 y_ = data2[:,1]
+x__ = data3[:,0]
+y__ = data3[:,1]
+x___ = data4[:,0]
+y___ = data4[:,1]
 
 plt.figure(figsize=(7,5))
 plt.plot(x,y,c = 'red', label = 'desired')
 plt.plot(x_,y_,c = 'blue', label = "pure pursuit")
+plt.plot(x__,y__,c = "green", label = "lqr")
+plt.plot(x___,y___,c = "yellow", label = "1")
 plt.legend(numpoints=1,loc=1)
 # #plt.title('Average speed vs TTC')
 # plt.xlabel("TTC[s]",font1)
