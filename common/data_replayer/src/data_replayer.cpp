@@ -9,18 +9,46 @@ DataReplayer::DataReplayer(ros::NodeHandle &nh) : nh_(nh) {
   dis = 0;
   send_frame_id = 0;
   begin_time = 0;
+  replay_percent = 1;
 };
 
 // Getters
 common_msgs::VirtualVehicleState DataReplayer::getVirtualVehicleState() { 
-  virtual_vehicle_state = virtual_vehicle_state_logger[send_frame_id];
+
+    // Print replay rate
+    if (replay_percent == floor(10.0 * send_frame_id / line_num)){
+    std::string s = "[=";
+    for (int i = 0; i < 10; i++){
+      if( i < replay_percent){
+        if( i == replay_percent - 1){
+          s =  s + ">";
+        }
+        else{
+          s = s + "=";
+        }
+      }
+      else{
+        s = s + "*";
+      }
+    }
+    s = s + "]";
+    ROS_INFO_STREAM("[Data Replayer] Replay rate: " << s << " " << 100.0 * send_frame_id/line_num << "%%.");
+    replay_percent += 1;
+  }
+
+  // Return virtual vehicle state 
   virtual_vehicle_state.header.stamp = ros::Time::now();
+  if(send_frame_id == virtual_vehicle_state_logger.size() - 1){
+    ROS_WARN("Data replay end.");
+    return virtual_vehicle_state;
+  }
+  virtual_vehicle_state = virtual_vehicle_state_logger[send_frame_id];
   if (send_frame_id == 0){
     begin_time = virtual_vehicle_state.header.stamp.toSec();
   }
   double run_duration = ros::Time::now().toSec() - begin_time;
   send_frame_id += 1;
-  // ROS_INFO("frame:%d, time:%fs.",send_frame_id,run_duration);
+
   return virtual_vehicle_state; 
 }
 
@@ -92,11 +120,12 @@ void DataReplayer::loadLogFile(std::string filename){
 
     s.chassis_state = c;
 
-    s.distance = dis;
+    s.distance = dis + para.init_distance;
 
     virtual_vehicle_state_logger.push_back(s);
   }
   log_file.close();
+  ROS_INFO("Total frame number of the data: %d.",line_num);
 }
 
 void DataReplayer::runAlgorithm() {

@@ -38,7 +38,9 @@ void DataLogger::openRecordFile(){
   header = "frame,time,x,y,heading,v_x,v_y,yaw_rate,steer_angle,pedal_acc,pedal_brake,lon_acc";
   record_file << header << std::endl;
   frame = 0;
-  ROS_INFO("[Data Logger] Record file created.");
+  begin_time = ros::Time::now().toSec();
+  last_time = begin_time;
+  ROS_INFO("[Data Logger] Record file created, begin_time: %f.",begin_time);
   open_file_flag = true;
 }
 
@@ -77,6 +79,12 @@ void DataLogger::write2File() {
   //     + heading + "," + v_x  + "," + v_y  + "," + yaw_rate << endl;
   // }
   frame += 1;
+  if (frame%50 == 0){
+    double T = ros::Time::now().toSec() - last_time;
+    double duration = ros::Time::now().toSec() - begin_time;
+    ROS_INFO("[Data Logger] Record frame number: %d, spent time: %f, frequence: %f.", frame, duration, 50.0/T);
+    last_time = ros::Time::now().toSec();
+  }
   }
 
 void DataLogger::runAlgorithm() {

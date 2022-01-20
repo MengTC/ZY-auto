@@ -41,6 +41,7 @@ void DataReplayerHandle::loadParameters() {
   }
   //nodeHandle_.param("config_name",variable_name,value);
   nodeHandle_.param<std::string>("log_filename",para_.log_filename," ");
+  nodeHandle_.param<double>("init_distance",para_.init_distance,5);
 }
 
 void DataReplayerHandle::subscribeToTopics() {

@@ -16,7 +16,7 @@ nearest_point_topic_name: /control/nearest_point
 
 control_state_topic_name: /control_state
 
-replay_trigger_topic_name: /control/replay_trigger
+replay_trigger_topic_name: /control/trigger
 
 
 # control parameters

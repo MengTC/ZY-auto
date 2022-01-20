@@ -4,6 +4,7 @@
 #include "nav_msgs/Odometry.h"
 #include "common_msgs/ChassisState.h"
 #include "common_msgs/ChassisControl.h"
+#include "common_msgs/Trigger.h"
 #include "std_msgs/String.h"
 
 #include "tf/transform_datatypes.h"
@@ -16,6 +17,7 @@
 namespace ns_data_logger {
 struct Para{
   std::string log_filename;
+  bool use_trigger;
 };
 class DataLogger {
   
@@ -45,6 +47,8 @@ class DataLogger {
 
   std::fstream record_file;
   int frame;
+  double begin_time;
+  double last_time;
   bool open_file_flag;
   void openRecordFile();
   void write2File();

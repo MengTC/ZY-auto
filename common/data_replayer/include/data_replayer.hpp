@@ -10,6 +10,7 @@
 namespace ns_data_replayer {
 struct Para{
   std::string log_filename;
+  double init_distance;
 };
 class DataReplayer {
   
@@ -39,11 +40,13 @@ class DataReplayer {
   std::fstream log_file;
   int line_num;
   int send_frame_id;
+  int replay_percent;
 
   geometry_msgs::Point last_loc;
   double dis;
   bool dis_flag;
   double begin_time;
+
 
   std::vector<common_msgs::VirtualVehicleState> virtual_vehicle_state_logger;
 };

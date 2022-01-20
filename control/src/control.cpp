@@ -52,6 +52,8 @@ namespace ns_control
   }
   void Control::setVirtualVehicleState(const common_msgs::VirtualVehicleState &msg){
     virtual_vehicle_state = msg;
+    ROS_INFO("virtual vehicle state: distance: %f, speed: %f.",virtual_vehicle_state.distance,
+              virtual_vehicle_state.utmpose.twist.twist.linear.x);
   }
 
   void Control::setPidParameters(const Pid_para &msg){
@@ -249,7 +251,5 @@ namespace ns_control
     }else{
       ROS_WARN("Waiting for final waypoints or vehicle state...");
     }
-
   }
-
 }

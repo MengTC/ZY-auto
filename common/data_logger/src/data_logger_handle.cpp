@@ -40,10 +40,17 @@ void DataLoggerHandle::loadParameters() {
     ROS_WARN_STREAM(
         "Did not load control_command_topic_name. Standard value is: " << control_command_topic_name_);
   }
+  if (!nodeHandle_.param<std::string>("log_trigger_topic_name",
+                                      log_trigger_topic_name_,
+                                      "/chassis_control")) {
+    ROS_WARN_STREAM(
+        "Did not load log_trigger_topic_name. Standard value is: " << log_trigger_topic_name_);
+  }
   if (!nodeHandle_.param("node_rate", node_rate_, 1)) {
     ROS_WARN_STREAM("Did not load node_rate. Standard value is: " << node_rate_);
   }
   nodeHandle_.param<std::string>("log_filename",para_.log_filename," ");
+  nodeHandle_.param<bool>("use_trigger",para_.use_trigger,false);
   //nodeHandle_.param("config_name",variable_name,value);
 }
 
@@ -53,6 +60,8 @@ void DataLoggerHandle::subscribeToTopics() {
       nodeHandle_.subscribe(localization_topic_name_, 1, &DataLoggerHandle::localizationCallback, this);
   controlCommandSubscriber_ =
       nodeHandle_.subscribe(control_command_topic_name_, 1, &DataLoggerHandle::controlCommandCallback, this);
+  logTriggerSubscriber_ =
+      nodeHandle_.subscribe(log_trigger_topic_name_, 1, &DataLoggerHandle::logTriggerCallback, this);
   chassisStateSubscriber_ =
       nodeHandle_.subscribe(chassis_state_topic_name_, 1, &DataLoggerHandle::chassisStateCallback, this);
 }
@@ -62,24 +71,20 @@ void DataLoggerHandle::publishToTopics() {
 }
 
 void DataLoggerHandle::run() {
-  // std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-  // if(localization_flag == 1 && control_command_flag == 1 && chassis_state_flag == 1){
-  
-  if(localization_flag == 1 | control_command_flag == 1){
-    data_logger_.runAlgorithm();
-    localization_flag = 0;
-    control_command_flag = 0;
-    chassis_state_flag = 0;
+  if(!para_.use_trigger || (para_.use_trigger && log_trigger_.trigger)){
+    if(localization_flag == 1 | control_command_flag == 1){
+      data_logger_.runAlgorithm();
+      localization_flag = 0;
+      control_command_flag = 0;
+      chassis_state_flag = 0;
+    }
+    else{
+      ROS_INFO("localization flag: %d, control command flag: %d, chassis_state_flag: %d",
+              localization_flag,control_command_flag,chassis_state_flag);
+    }
+    sendMsg();
   }
-  else{
-    ROS_INFO("localization flag: %d, control command flag: %d, chassis_state_flag: %d",
-            localization_flag,control_command_flag,chassis_state_flag);
-  }
   
-  // std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-  // double time_round = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
-  // std::cout << "time cost = " << time_round << ", frequency = " << 1 / time_round << std::endl;
-  sendMsg();
 }
 
 void DataLoggerHandle::sendMsg() {
@@ -99,5 +104,8 @@ void DataLoggerHandle::chassisStateCallback(const common_msgs::ChassisState &msg
 void DataLoggerHandle::controlCommandCallback(const common_msgs::ChassisControl &msg){
   data_logger_.setControlCommand(msg);
   control_command_flag = 1;
+}
+void DataLoggerHandle::logTriggerCallback(const common_msgs::Trigger &msg){
+  log_trigger_ = msg;
 }
 }
