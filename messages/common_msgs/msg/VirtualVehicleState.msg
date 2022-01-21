@@ -8,3 +8,6 @@ nav_msgs/Odometry utmpose
 
 # distance 
 float64 distance
+
+# data is end
+bool data_is_end 

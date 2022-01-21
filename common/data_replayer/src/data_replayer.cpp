@@ -38,7 +38,9 @@ common_msgs::VirtualVehicleState DataReplayer::getVirtualVehicleState() {
 
   // Return virtual vehicle state 
   virtual_vehicle_state.header.stamp = ros::Time::now();
+  virtual_vehicle_state.data_is_end = false;
   if(send_frame_id == virtual_vehicle_state_logger.size() - 1){
+    virtual_vehicle_state.data_is_end = true;
     ROS_WARN("Data replay end.");
     return virtual_vehicle_state;
   }
@@ -123,6 +125,7 @@ void DataReplayer::loadLogFile(std::string filename){
     s.distance = dis + para.init_distance;
 
     virtual_vehicle_state_logger.push_back(s);
+
   }
   log_file.close();
   ROS_INFO("Total frame number of the data: %d.",line_num);

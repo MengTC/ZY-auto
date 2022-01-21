@@ -48,7 +48,7 @@ void Cansend::runAlgorithm() {
   if(para.send_mode == 0){
     //test mode
     id_0x04EF8480->SetconDegCmd(para.test_steer_angle);
-    id_0x04EF8480->SetcomControlCmd(1);
+    id_0x04EF8480->SetcomControlCmd(para.setup_steer_enable);
     id_0x04EF8480->SetconRtCmd(para.setup_steer_speed);
 
     id_0x0C040B2A->SetconAccReq(0);
@@ -65,13 +65,14 @@ void Cansend::runAlgorithm() {
         target_acc_pedal = para.test_acc_pedal;
       }
     }
+    if (para.setup_pedal_enable == 0){control_mode = 0;}
     id_0x0C040B2A->SetcontrolScheme(control_mode);
     id_0x0C040B2A->SetAccPedOpenReq(target_acc_pedal);
     id_0x0C040B2A->SetBrkPedOpenReq(target_brk_pedal);
   }else{
     //autonomous driving mode
     id_0x04EF8480->SetconDegCmd(chassis_control_cmd.steer_angle);
-    id_0x04EF8480->SetcomControlCmd(1);
+    id_0x04EF8480->SetcomControlCmd(para.setup_steer_enable);
     id_0x04EF8480->SetconRtCmd(para.setup_steer_speed);
 
     id_0x0C040B2A->SetconAccReq(0);
@@ -79,15 +80,16 @@ void Cansend::runAlgorithm() {
     int control_mode = 0;
     int target_acc_pedal = 0;
     int target_brk_pedal = 0;
-    if (chassis_control_cmd.acc_pedal_open_request > 0){
+    if (chassis_control_cmd.brk_pedal_open_request > 0){
       control_mode = 1;
-      target_brk_pedal = chassis_control_cmd.acc_pedal_open_request;
+      target_brk_pedal = chassis_control_cmd.brk_pedal_open_request;
     }else{
-      if (chassis_control_cmd.brk_pedal_open_request > 0){
+      if (chassis_control_cmd.acc_pedal_open_request > 0){
         control_mode = 2;
-        target_acc_pedal = chassis_control_cmd.brk_pedal_open_request;
+        target_acc_pedal = chassis_control_cmd.acc_pedal_open_request;
       }
     }
+    if (para.setup_pedal_enable == 0){control_mode = 0;}
     id_0x0C040B2A->SetcontrolScheme(control_mode);
     id_0x0C040B2A->SetAccPedOpenReq(target_acc_pedal);
     id_0x0C040B2A->SetBrkPedOpenReq(target_brk_pedal);

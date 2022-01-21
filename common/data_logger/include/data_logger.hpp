@@ -30,6 +30,8 @@ class DataLogger {
   void setLocalization(nav_msgs::Odometry msg);
   void setChassisState(common_msgs::ChassisState msg);
   void setControlCommand(common_msgs::ChassisControl msg);
+  void setLogTrigger(common_msgs::Trigger msg);
+
 
   void setParameters(Para msg);
 
@@ -42,6 +44,9 @@ class DataLogger {
   nav_msgs::Odometry cur_pose;
   common_msgs::ChassisState chassis_state;
   common_msgs::ChassisControl control_cmd;
+  geometry_msgs::Point last_point;
+  common_msgs::Trigger log_trigger;
+  bool logStartFlag;
 
   Para para;
 
@@ -52,6 +57,7 @@ class DataLogger {
   bool open_file_flag;
   void openRecordFile();
   void write2File();
+  double distance;
   
 };
 }

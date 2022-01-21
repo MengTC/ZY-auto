@@ -1,16 +1,37 @@
 pid:
-  kp: 0.5
-  ki: 0.05
+  kp: 10
+  ki: 1.5
   kd: 0.001
+# virtual vehicle 1: kp 10, ki: 1.5 , kd: 0.001
 pure_pursuit:
   mode: fixed  # 1) [fixed] lookahead distance 2) [variable] k_pre * v
   lookahead_distance: 3.0 # [m]
   k_pre: 1.5
 control_switch:
   longitudinal: true # Start: true; Shutdown: false
-  lateral: true
-longitudinal_mode: 3 # 1: constant speed 2: planned speed 3: desired distance
-desired_speed: 5 # km/h TODO: to check
+  lateral: false
+longitudinal_mode: 3 # 1: constant speed 2: planned speed 3: desired distance 
+desired_speed: 6.0 # km/h TODO: to check
 desired_distance: 5 # m
-lon_controller_id: 1 # 1: pid
+lon_controller_id: 1 # 1: pid 2: CFC 3: TCFC
 lat_controller_id: 2 # 1: pure pursuit, 2: lqr 
+trigger_speed: 2.8 # [m/s] vehicle speed that starts to replay virtual vehicle and log
+is_first_vehicle: false # true if the vehicle is the first vehicle
+lon_control_para:
+  k_d: 5.0 # feedback gain of distance error
+  k_v: 5.0 # feedback gain of speed error 
+  # CFC parameters
+  lmd: 0 
+  eps: 0
+  k_s: 0
+  k_u: 0
+  # TCFC parameters
+  c_0: 0 
+  c_1: 0
+  c_2: 0 
+  # feedback and feedforward coef
+  p_fb: 0
+  p_ff: 0
+  
+  
+  

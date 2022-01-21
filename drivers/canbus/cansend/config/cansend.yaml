@@ -6,9 +6,11 @@ node_rate: 50   # [Herz]
 
 cansend_para:
   send_mode: 1 # 0 for test and 1 for autonomous driving
-  test_steer_angle: 100
-  test_acc_pedal: 0
+  test_steer_angle: 0
+  test_acc_pedal: 50
   test_brk_pedal: 0
   setup_steer_speed: 300
+  setup_steer_enable: 0
+  setup_pedal_enable: 1
   
   

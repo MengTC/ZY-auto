@@ -7,6 +7,7 @@ set(PROJECT_DEPS
   roscpp
   std_msgs
   common_msgs
+  libwaypoint_follower
   )
 
 find_package(catkin REQUIRED COMPONENTS
@@ -15,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
   common_msgs
+  libwaypoint_follower
   )
 
 catkin_package(

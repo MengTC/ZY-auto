@@ -36,6 +36,8 @@ struct Para{
   double test_acc_pedal;
   double test_brk_pedal;
   double setup_steer_speed;
+  int setup_steer_enable;
+  int setup_pedal_enable;
 };
 
 class Cansend {

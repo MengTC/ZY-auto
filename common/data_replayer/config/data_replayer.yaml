@@ -1,5 +1,5 @@
 virtual_vehicle_state_topic_name: /virtual_vehicle_state
 
-replay_trigger_topic_name: /control/replay_trigger
+replay_trigger_topic_name: /control/trigger
 
-init_distance: 5 #[m] the initial distance that virtual vehicle ahead ego vehicle 
+init_distance: 2.5 #[m] the initial distance that virtual vehicle ahead ego vehicle 

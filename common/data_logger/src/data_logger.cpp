@@ -1,11 +1,12 @@
 #include <ros/ros.h>
 #include "data_logger.hpp"
 #include <sstream>
+#include <libwaypoint_follower/libwaypoint_follower.h>
 
 namespace ns_data_logger {
 // Constructor
 DataLogger::DataLogger(ros::NodeHandle &nh) : nh_(nh) {
-
+  logStartFlag = false;
 };
 
 // Setters
@@ -19,6 +20,17 @@ void DataLogger::setChassisState(common_msgs::ChassisState msg){
 
 void DataLogger::setControlCommand(common_msgs::ChassisControl msg){
   control_cmd = msg;
+}
+
+void DataLogger::setLogTrigger(common_msgs::Trigger msg){
+  log_trigger = msg;
+  if (!logStartFlag){
+    if(log_trigger.trigger){
+      logStartFlag = true;
+      last_point = cur_pose.pose.pose.position;
+      distance = 0;
+    }
+  }
 }
 
 void DataLogger::setParameters(Para msg){
@@ -35,7 +47,7 @@ void DataLogger::openRecordFile(){
   // else{
   //   header = "frame,time,x,y,heading,v_x,v_y,yaw_rate,a_x,distance,pedal_acc,pedal_brake";
   // }
-  header = "frame,time,x,y,heading,v_x,v_y,yaw_rate,steer_angle,pedal_acc,pedal_brake,lon_acc";
+  header = "frame,time,x,y,heading,v_x,v_y,yaw_rate,steer_angle,pedal_acc,pedal_brake,lon_acc,distance";
   record_file << header << std::endl;
   frame = 0;
   begin_time = ros::Time::now().toSec();
@@ -67,12 +79,16 @@ void DataLogger::write2File() {
   string pedal_acc = to_string(chassis_state.real_acc_pedal);
   string pedal_brake = to_string(chassis_state.real_brake_pedal);
   string lon_acc  = to_string(chassis_state.vehicle_lon_acceleration);
+
+  distance += getPlaneDistance(last_point,cur_pose.pose.pose.position);
+  last_point = cur_pose.pose.pose.position;
+  string dis = to_string(distance);
   
   // if (para.record_mode == 0){// record for path tracking 
   record_file << frame_s + "," + time + "," + x + "," + y + "," 
         + heading + "," + v_x  + "," + v_y  + "," + yaw_rate + ","
         + steer_angle + "," + pedal_acc + "," + pedal_brake + ","
-        + lon_acc << endl;
+        + lon_acc  + "," + dis<< endl;
   // }
   // else{ // record for virtual platoon test
   //   record_file << frame + "," + time + "," + x + "," + y + "," 

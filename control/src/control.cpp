@@ -8,7 +8,9 @@ namespace ns_control
   Control::Control(ros::NodeHandle &nh) : nh_(nh),
                                           pid_controller(1.0, 0.0, 0.0),
                                           pp_controller(3.975)
-                                          {};
+                                          {
+                                            initial_stage = true;
+                                          };
 
   // Getters
   common_msgs::ChassisControl Control::getChassisControlCommand(){
@@ -33,7 +35,7 @@ namespace ns_control
   }
 
   common_msgs::Trigger Control::getReplayTrigger(){
-    replay_trigger.trigger = true;
+    // replay_trigger.trigger = true;
     return replay_trigger;
   }
 
@@ -44,7 +46,7 @@ namespace ns_control
   }
   void Control::setVehicleDynamicState(const common_msgs::ChassisState &msg){
     vehicle_dynamic_state = msg;
-    // ROS_INFO_STREAM("[Control]current velocity: " << vehicle_state.twist.linear.x);
+    // ROS_INFO_STREAM("[Control]current speed: " << vehicle_state.twist.linear.x);
   }
   void Control::setUtmPose(const nav_msgs::Odometry &msg){
     utm_pose = msg; 
@@ -52,8 +54,8 @@ namespace ns_control
   }
   void Control::setVirtualVehicleState(const common_msgs::VirtualVehicleState &msg){
     virtual_vehicle_state = msg;
-    ROS_INFO("virtual vehicle state: distance: %f, speed: %f.",virtual_vehicle_state.distance,
-              virtual_vehicle_state.utmpose.twist.twist.linear.x);
+    // ROS_INFO("virtual vehicle state: distance: %f, speed: %f.",virtual_vehicle_state.distance,
+    //           virtual_vehicle_state.utmpose.twist.twist.linear.x);
   }
 
   void Control::setPidParameters(const Pid_para &msg){
@@ -211,15 +213,136 @@ namespace ns_control
   }
 
   double Control::lonControlUpdate(){
+    double desired_pedal = 0;
+    double desired_pedal_fb = 0;
+    double cur_spd = utm_pose.twist.twist.linear.x;
+
+    switch (control_para.longitudinal_mode){
+      case 1:{// follow desired speed
+        break;
+      }
+      case 2:{// follow planned speed
+        break;
+      }
+      case 3:{// keep desired distance virtual
+
+          // virtual vehicle not triggered or control the 1st vehicle
+          if (!virtualFlag || control_para.is_first_vehicle){
+            if (initial_stage){
+              // desired_pedal = 25; // accelerate to desired speed
+              desired_pedal = - pid_controller.outputSignal(control_para.desired_speed,cur_spd);
+              if(cur_spd >= control_para.trigger_speed){
+                initial_stage = false; // if the first vehicle get desired speed
+                last_point = current_pose.position;
+                replay_trigger.trigger = true; // trigger log and replay when the speed arrives at desired speed
+                ROS_INFO("[Lon Control] Accelerate to trigger data replay. ");
+              }
+            }else{
+              // stage 2 for the 1st vehicle: keep desired speed 
+              desired_pedal = - pid_controller.outputSignal(control_para.desired_speed,cur_spd);
+              // ROS_INFO("[Lon Control] Keep desired speed: %f, current speed: %f",control_para.desired_speed,cur_spd);
+            }
+            return desired_pedal;
+          }
+
+          //virtual vehicle is triggered
+          // error defination
+          double cur_dis = (virtual_vehicle_state.distance - distance);
+          double e_d = cur_dis - control_para.desired_distance;
+          double pre_spd = virtual_vehicle_state.utmpose.twist.twist.linear.x;
+          double e_v = pre_spd - cur_spd;
+          double pre_acc = virtual_vehicle_state.chassis_state.vehicle_lon_acceleration;
+          double e_a = pre_acc - vehicle_dynamic_state.vehicle_lon_acceleration;
+          ROS_INFO_STREAM("[Control] distance to pre vehicle: " << cur_dis 
+                          << ", speed error: " << e_v);
+
+          // constraints variable initialization
+          double s_i = 0;
+          double abs_s = 0;
+          double gamma = 0;
+
+          // update distance
+          distance += getPlaneDistance(current_pose.position,last_point);
+          last_point = current_pose.position;
+
+          //  select controller
+          switch (control_para.lon_controller_id){
+            case 1:{// PID controller
+              desired_pedal_fb = control_para.k_d * e_d + control_para.k_v * e_v;
+              break;
+            }
+            case 2:{// CFC controller 
+              s_i = e_v + control_para.lmd * e_d;
+              abs_s = abs(s_i);
+              if (abs_s > control_para.eps){
+                gamma = 1/abs_s;
+              }else{
+                gamma = 1/control_para.eps;
+              }
+              desired_pedal_fb = (control_para.k_s + control_para.k_u * gamma) * s_i; 
+              break;
+            }
+            case 3:{// TCFC controller
+              double z = 0;
+              double d_z = 0;
+              double tmp = control_para.c_0 * e_d + control_para.c_1;
+              if (tmp > M_PI/2){
+                tmp = M_PI/2 - 0.1;
+              }else{
+                if(tmp < -M_PI/2){
+                  tmp = -M_PI/2 + 0.1;
+                }
+              }
+              z = 10 * (tan(tmp) + control_para.c_2);
+              d_z = 10 * control_para.c_0 * e_v / (pow(cos(tmp),2));
+              // constraints
+              s_i = d_z + control_para.lmd * z;
+              abs_s = abs(s_i);
+              if (abs_s > control_para.eps){
+                gamma = 1/abs_s;
+              }else{
+                gamma = 1/control_para.eps;
+              }
+              desired_pedal_fb = control_para.k_s * s_i + control_para.k_u * s_i * gamma;
+              break;
+            }
+            default:{
+              break;
+            }
+
+            // add feedforward control value
+            double desired_pedal_ff;
+            double pre_pedal_acc = virtual_vehicle_state.chassis_state.real_acc_pedal;
+            double pre_pedal_brake = virtual_vehicle_state.chassis_state.real_brake_pedal;
+            
+            if (pre_pedal_acc > pre_pedal_brake){
+              desired_pedal_ff = pre_pedal_acc;
+            }else{
+              desired_pedal_ff = -pre_pedal_brake;
+            }
+            double desired_pedal = control_para.p_ff * desired_pedal_ff + control_para.p_fb * desired_pedal_fb;
+
+          }
+        break;
+      }
+      default:{
+        ROS_WARN("No such longitudinal controller.");
+      }
+    }
+
     
+    return desired_pedal;
   }
 
   void Control::runAlgorithm(){
 
     ROS_DEBUG("[Control]In run() ... ");
-    if (vehicleDynamicStateFlag && finalWaypointsFlag && utmPoseFlag){
-      
-      // Lateral control
+
+    // if (vehicleDynamicStateFlag && (finalWaypointsFlag||control_para.is_first_vehicle) && utmPoseFlag){
+    if ( (finalWaypointsFlag||control_para.is_first_vehicle||!control_para.lateral_control_switch) && utmPoseFlag){
+      /********************** 
+        Lateral control
+      ***********************/
       if (control_para.lateral_control_switch){
         // limit front wheel angle
         double front_wheel_angle = latControlUpdate();
@@ -227,29 +350,46 @@ namespace ns_control
         // convert front wheel angle to steering wheel angle
         chassis_control_command.steer_angle = 
                 - (24.1066 * front_wheel_angle + 4.8505);
-        // if (virtualFlag){
-        //   chassis_control_command.steer_angle = 0.5 * virtual_vehicle_state.chassis_state.real_steer_angle 
-        //                                       + 0.5 * chassis_control_command.steer_angle;
-        //   ROS_INFO_STREAM("virtual");
-        // }       
+     
         ROS_INFO_STREAM("[Contorl] chassis_control_command steer angle: " << chassis_control_command.steer_angle);
       }
       else{
         chassis_control_command.steer_angle = 0;
-        ROS_INFO_STREAM("[Contorl] Lateral control disabled");
+        // ROS_INFO_STREAM("[Contorl] Lateral control disabled");
       }
      
-      // Longitudinal Control
+      /********************** 
+        Longitudinal control
+      ***********************/
       if (control_para.longitudinal_control_switch){
-        if (control_para.longitudinal_mode == 1){// constant speed control
-          // chassis_control_command.linear_velocity = control_para.desired_speed;
-          }
+        
+        double desired_pedal = lonControlUpdate();
+
+        // set dead zone
+        if (desired_pedal > -2 && desired_pedal < 2){
+          desired_pedal = 0;
+        }
+        // set bound
+        BOUND(desired_pedal,65,-40);
+
+        ROS_INFO_STREAM("[Control] desired_pedal: " << desired_pedal
+              <<", current speed: " << utm_pose.twist.twist.linear.x
+              <<", distance: " << distance);
+        
+        if (desired_pedal > 0){
+          chassis_control_command.acc_pedal_open_request = desired_pedal;
+          chassis_control_command.brk_pedal_open_request = 0;
+        }else{
+          chassis_control_command.brk_pedal_open_request = -desired_pedal;
+          chassis_control_command.acc_pedal_open_request =  0;
+        }
       }
       else{
         ROS_INFO_STREAM("[Contorl] Longitudinal control disabled");
       }
     }else{
-      ROS_WARN("Waiting for final waypoints or vehicle state...");
+      ROS_WARN_STREAM("[Control] utmPoseFlag: " << utmPoseFlag << ", vehicleDynamicStateFlag: " << vehicleDynamicStateFlag
+                      << ", finalWaypointsFlag: " << finalWaypointsFlag << ", is_first_vehicle: " << control_para.is_first_vehicle);
     }
   }
 }

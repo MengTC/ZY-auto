@@ -72,7 +72,7 @@ void DataLoggerHandle::publishToTopics() {
 
 void DataLoggerHandle::run() {
   if(!para_.use_trigger || (para_.use_trigger && log_trigger_.trigger)){
-    if(localization_flag == 1 | control_command_flag == 1){
+    if(localization_flag == 1 | control_command_flag == 1 ){
       data_logger_.runAlgorithm();
       localization_flag = 0;
       control_command_flag = 0;
@@ -107,5 +107,6 @@ void DataLoggerHandle::controlCommandCallback(const common_msgs::ChassisControl 
 }
 void DataLoggerHandle::logTriggerCallback(const common_msgs::Trigger &msg){
   log_trigger_ = msg;
+  data_logger_.setLogTrigger(msg);
 }
 }

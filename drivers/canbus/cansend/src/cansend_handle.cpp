@@ -60,6 +60,8 @@ void CansendHandle::loadParameters() {
   nodeHandle_.param<double>("cansend_para/test_acc_pedal",para_.test_acc_pedal,0);
   nodeHandle_.param<double>("cansend_para/test_brk_pedal",para_.test_brk_pedal,0);
   nodeHandle_.param<double>("cansend_para/setup_steer_speed",para_.setup_steer_speed,100);
+  nodeHandle_.param<int>("cansend_para/setup_steer_enable",para_.setup_steer_enable,1);
+  nodeHandle_.param<int>("cansend_para/setup_pedal_enable",para_.setup_pedal_enable,1);
 }
 
 void CansendHandle::subscribeToTopics() {

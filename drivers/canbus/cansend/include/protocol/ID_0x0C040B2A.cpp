@@ -84,7 +84,7 @@ void ID_0x0C040B2A::SetcontrolScheme(double controlScheme){
   controlScheme_=controlScheme;
 }
 void ID_0x0C040B2A::Set_p_controlScheme(double controlScheme){
-  controlScheme=BoundedValue(0.000000,1.000000,controlScheme);
+  controlScheme=BoundedValue(0.000000,2.000000,controlScheme);
   int x = (controlScheme - 0.000000) / 1.000000;
   uint8_t x0 = x & RANG_MASK_1_L[7];
   x >>= 8;

@@ -22,11 +22,24 @@ namespace ns_control {
 struct Para{
   bool longitudinal_control_switch;
   bool lateral_control_switch;
+  bool is_first_vehicle;
   int  longitudinal_mode; // 1:constant speed, 2: planned speed, 3: desired distance
   double desired_speed;
   double desired_distance;
   int lon_controller_id;
   int lat_controller_id;
+  double trigger_speed;
+  double k_d;
+  double k_v;
+  double lmd;
+  double eps;
+  double k_s;
+  double k_u;
+  double c_0;
+  double c_1;
+  double c_2;
+  double p_ff;
+  double p_fb;
 };
 
 class Control {
@@ -72,11 +85,15 @@ class Control {
   std::vector<autoware_msgs::Waypoint> current_waypoints;
   nav_msgs::Odometry utm_pose;
   geometry_msgs::Pose current_pose;
+  geometry_msgs::Point last_point;
   common_msgs::ChassisState vehicle_dynamic_state;
   common_msgs::ChassisControl chassis_control_command;
   common_msgs::ControlState control_state;
   common_msgs::Trigger replay_trigger;
   common_msgs::VirtualVehicleState virtual_vehicle_state;
+
+  double distance;
+  bool initial_stage;
 
   PID pid_controller;
   Pure_pursuit pp_controller;

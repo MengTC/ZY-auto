@@ -80,11 +80,24 @@ void ControlHandle::loadParameters() {
   // Control Parameters 
   nodeHandle_.param<bool>("control_switch/longitudinal",control_para_.longitudinal_control_switch,false);
   nodeHandle_.param<bool>("control_switch/lateral",control_para_.lateral_control_switch,false);
+  nodeHandle_.param<bool>("is_first_vehicle",control_para_.is_first_vehicle,false);
   nodeHandle_.param<int>("longitudinal_mode",control_para_.longitudinal_mode,1);
   nodeHandle_.param<double>("desired_speed",control_para_.desired_speed,5.0);
   nodeHandle_.param<double>("desired_distance",control_para_.desired_distance,5.0);
   nodeHandle_.param<int>("lon_controller_id",control_para_.lon_controller_id,1);
   nodeHandle_.param<int>("lat_controller_id",control_para_.lat_controller_id,1);
+  nodeHandle_.param<double>("trigger_speed",control_para_.trigger_speed,5);
+  nodeHandle_.param<double>("lon_control_para/k_d",control_para_.k_d,0);
+  nodeHandle_.param<double>("lon_control_para/k_v",control_para_.k_v,0);
+  nodeHandle_.param<double>("lon_control_para/k_s",control_para_.k_s,0);
+  nodeHandle_.param<double>("lon_control_para/k_u",control_para_.k_u,0);
+  nodeHandle_.param<double>("lon_control_para/lmd",control_para_.lmd,0);
+  nodeHandle_.param<double>("lon_control_para/eps",control_para_.eps,0);
+  nodeHandle_.param<double>("lon_control_para/c_0",control_para_.c_0,0);
+  nodeHandle_.param<double>("lon_control_para/c_1",control_para_.c_1,0);
+  nodeHandle_.param<double>("lon_control_para/c_2",control_para_.c_2,0);
+  nodeHandle_.param<double>("lon_control_para/p_ff",control_para_.p_ff,0);
+  nodeHandle_.param<double>("lon_control_para/p_fb",control_para_.p_fb,0);
   ROS_INFO_STREAM("Longitudinal control enable: "<<control_para_.longitudinal_control_switch
                   << "; Lateral control enable: "<<control_para_.lateral_control_switch);
               
