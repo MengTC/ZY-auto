@@ -78,12 +78,12 @@ void DataReplayer::loadLogFile(std::string filename){
     }
     std::stringstream ss(linestr);
     std::string csvdata[12];
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 12; i++) {
         char tempdata[500] = {0};
         ss.getline(tempdata, 500, ',');
         csvdata[i] = std::string(tempdata);
     }   
-    double x,y,heading,v_x,v_y,yaw_rate,steer_angle,pedal_acc,pedal_brake,lon_acc;
+    double x,y,heading,v_x,v_y,yaw_rate,lon_acc, steer_angle,pedal_acc,pedal_brake;
     x = atof(csvdata[2].data());
     y = atof(csvdata[3].data());
     heading = atof(csvdata[4].data());

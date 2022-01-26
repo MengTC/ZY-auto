@@ -42,6 +42,7 @@ void DataReplayerHandle::loadParameters() {
   //nodeHandle_.param("config_name",variable_name,value);
   nodeHandle_.param<std::string>("log_filename",para_.log_filename," ");
   nodeHandle_.param<double>("init_distance",para_.init_distance,5);
+  nodeHandle_.param<bool>("use_trigger",para_.use_trigger,true);
 }
 
 void DataReplayerHandle::subscribeToTopics() {
@@ -57,7 +58,7 @@ void DataReplayerHandle::publishToTopics() {
 
 void DataReplayerHandle::run() {
   // std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-  if (replay_trigger_){
+  if (replay_trigger_ | !para_.use_trigger){
     data_replayer_.runAlgorithm();
     sendMsg();
   }else{

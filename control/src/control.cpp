@@ -8,8 +8,11 @@ namespace ns_control
   Control::Control(ros::NodeHandle &nh) : nh_(nh),
                                           pid_controller(1.0, 0.0, 0.0),
                                           pp_controller(3.975)
+                                          // pid_dis_controller(1.0,0.0,0.0)
                                           {
                                             initial_stage = true;
+                                            init_spd_flag = true;
+                                            error_int = 0;
                                           };
 
   // Getters
@@ -63,6 +66,9 @@ namespace ns_control
     pid_controller.kp = pid_para.kp;
     pid_controller.ki = pid_para.ki;
     pid_controller.kd = pid_para.kd;
+    // pid_dis_controller.kp = control_para.k_d;
+    // pid_dis_controller.ki = control_para.k_s;
+    // pid_dis_controller.kd = 0;
   }
   void Control::setPurePursuitParameters(const Pure_pursuit_para &msg){
     pp_para = msg;
@@ -230,7 +236,8 @@ namespace ns_control
           if (!virtualFlag || control_para.is_first_vehicle){
             if (initial_stage){
               // desired_pedal = 25; // accelerate to desired speed
-              desired_pedal = - pid_controller.outputSignal(control_para.desired_speed,cur_spd);
+              // desired_pedal = - pid_controller.outputSignal(control_para.desired_speed,cur_spd);
+              desired_pedal = 40;
               if(cur_spd >= control_para.trigger_speed){
                 initial_stage = false; // if the first vehicle get desired speed
                 last_point = current_pose.position;
@@ -242,7 +249,7 @@ namespace ns_control
               desired_pedal = - pid_controller.outputSignal(control_para.desired_speed,cur_spd);
               // ROS_INFO("[Lon Control] Keep desired speed: %f, current speed: %f",control_para.desired_speed,cur_spd);
             }
-            return desired_pedal;
+            return desired_pedal; // FIXME
           }
 
           //virtual vehicle is triggered
@@ -250,11 +257,29 @@ namespace ns_control
           double cur_dis = (virtual_vehicle_state.distance - distance);
           double e_d = cur_dis - control_para.desired_distance;
           double pre_spd = virtual_vehicle_state.utmpose.twist.twist.linear.x;
-          double e_v = pre_spd - cur_spd;
+          double use_pre_spd;
+
+          if (init_spd_flag){
+            last_pre_spd = pre_spd;
+            use_pre_spd = pre_spd;
+            init_spd_flag = false;
+            ROS_INFO("\033[1;31m[Control] Initial pre_spd: %f \033[0m",pre_spd);
+          }else{
+            
+            if (abs(pre_spd - last_pre_spd)<control_para.eps){
+              use_pre_spd = last_pre_spd;
+              ROS_INFO("\033[1;31m[Control] Using last speed value\033[0m");
+            }else{
+              use_pre_spd = pre_spd;
+            }
+            last_pre_spd = use_pre_spd;
+          }
+          double e_v = use_pre_spd - cur_spd;
+          
           double pre_acc = virtual_vehicle_state.chassis_state.vehicle_lon_acceleration;
           double e_a = pre_acc - vehicle_dynamic_state.vehicle_lon_acceleration;
-          ROS_INFO_STREAM("[Control] distance to pre vehicle: " << cur_dis 
-                          << ", speed error: " << e_v);
+          ROS_INFO_STREAM("\033[1;32m[Control] distance to pre vehicle: " << cur_dis 
+                          << ", speed error: " << e_v << "\033[0m");
 
           // constraints variable initialization
           double s_i = 0;
@@ -268,7 +293,18 @@ namespace ns_control
           //  select controller
           switch (control_para.lon_controller_id){
             case 1:{// PID controller
-              desired_pedal_fb = control_para.k_d * e_d + control_para.k_v * e_v;
+              if(cur_dis < 0){
+                desired_pedal_fb = - pid_controller.outputSignal(control_para.desired_speed,cur_spd);
+              }else{
+                // desired_pedal_fb = control_para.k_d * e_d + control_para.k_v * e_v;
+                // desired_pedal_fb = pid_dis_controller.outputSignal(control_para.desired_distance,cur_dis) + control_para.k_v * e_v;
+                // SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),FOREGROUND_INTENSITY|FOREGROUND_GREEN);
+                error_int += e_d;
+                BOUND(error_int,30,-30);
+                desired_pedal_fb = control_para.k_d * e_d + control_para.k_s * error_int + control_para.k_v * e_v;
+                ROS_INFO_STREAM("[Control] e_d: " << e_d << ", e_v: " << e_v);
+                // SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),FOREGROUND_INTENSITY|FOREGROUND_GREEN|FOREGROUND_RED|FOREGROUND_BLUE);
+              }
               break;
             }
             case 2:{// CFC controller 
@@ -309,21 +345,25 @@ namespace ns_control
             default:{
               break;
             }
-
-            // add feedforward control value
-            double desired_pedal_ff;
-            double pre_pedal_acc = virtual_vehicle_state.chassis_state.real_acc_pedal;
-            double pre_pedal_brake = virtual_vehicle_state.chassis_state.real_brake_pedal;
-            
-            if (pre_pedal_acc > pre_pedal_brake){
-              desired_pedal_ff = pre_pedal_acc;
-            }else{
-              desired_pedal_ff = -pre_pedal_brake;
-            }
-            double desired_pedal = control_para.p_ff * desired_pedal_ff + control_para.p_fb * desired_pedal_fb;
-
           }
-        break;
+          // add feedforward control value
+          double desired_pedal_ff;
+          double pre_pedal_acc = virtual_vehicle_state.chassis_state.real_acc_pedal;
+          double pre_pedal_brake = virtual_vehicle_state.chassis_state.real_brake_pedal;
+          // ROS_INFO_STREAM("pre pedal acc: " << pre_pedal_acc << ", pre pedal brk: " << pre_pedal_brake);
+          
+          if (pre_pedal_acc > pre_pedal_brake){
+            desired_pedal_ff = pre_pedal_acc;
+          }else{
+            desired_pedal_ff = -pre_pedal_brake;
+          }
+          // desired_pedal_ff = 45;
+          ROS_INFO_STREAM("[Control] desired pedal feedback: " << desired_pedal_fb
+                        <<", desired pedal feedforward: " << desired_pedal_ff);
+          desired_pedal = control_para.p_ff * desired_pedal_ff + control_para.p_fb * desired_pedal_fb;
+          if(virtual_vehicle_state.data_is_end){desired_pedal=0;}
+          // ROS_INFO_STREAM("temp desired pedal: "<<desired_pedal);
+          break;
       }
       default:{
         ROS_WARN("No such longitudinal controller.");

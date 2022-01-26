@@ -11,6 +11,7 @@ namespace ns_data_replayer {
 struct Para{
   std::string log_filename;
   double init_distance;
+  bool use_trigger;
 };
 class DataReplayer {
   

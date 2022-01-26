@@ -16,6 +16,7 @@
 #include "pid.hpp"
 #include "pure_pursuit.hpp"
 #include "lqr_path_tracking.hpp"
+#include <math.h>
 
 namespace ns_control {
 
@@ -94,8 +95,11 @@ class Control {
 
   double distance;
   bool initial_stage;
+  double last_pre_spd;
+  bool init_spd_flag;
 
   PID pid_controller;
+  // PID pid_dis_controller;
   Pure_pursuit pp_controller;
   LQRPathTracking lqr_controller;
 
@@ -105,6 +109,7 @@ class Control {
   
   Para control_para;
   
+  double error_int;
   // methods
 
   double lookahead_distance;

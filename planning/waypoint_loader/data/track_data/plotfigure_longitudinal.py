@@ -19,7 +19,7 @@ font1 = {'family' : 'Times New Roman',
 '''
 frame,  time, x, y, heading, 
 v_x,  v_y,  yaw_rate, steer_angle, pedal_acc,
-pedal_brake, lon_acc
+pedal_brake, lon_acc, distance
 '''
 
 def get_data(filename):
@@ -57,17 +57,42 @@ col = int(args[1])
 filenames = args[2].split(",")
 plt.figure(figsize=(7,5))
 
+if args_num <=3:
+    for i in range(len(filenames)):
+        filename = filenames[i]
 
-for i in range(len(filenames)):
-    filename = filenames[i]
+        color = colors[i]
+        data,header = get_data(filename)
+        t = data[:,1] - data[0,1]
+        if (col == 5):
+            plt.plot(t,data[:,col]*3.6, c = color, label=filename)
+        else:
+            plt.plot(t,data[:,col], c = color, label=filename)
+elif args_num == 4:
 
-    color = colors[i]
-    data,header = get_data(filename)
-    t = data[:,1] - data[0,1]
-    if (col == 5):
-        plt.plot(t,data[:,col]*3.6, c = color, label=filename)
+    init_dis_1 = int(args[3])
+    print "initial distance",init_dis_1
+    filename0 = filenames[0]
+    filename1 = filenames[1]
+    data0,header = get_data(filename0)
+    data1,header = get_data(filename1)
+    t = data0[:,1] - data0[0,1]
+    size0 = len(data0)
+    size1 = len(data1)
+    size1 = min(size0,size1)
+    if (size0 >= size1):
+        if (col == 5):
+            plt.plot(t[:size1],(data0[:size1,col]-data1[:size1,col])*3.6+init_dis_1, c = colors[0], label="compare virtual 1 & 2")
+        else:
+            # if col == 12:
+                # data1[:size1,col] = data1[:size1,col] * 5.9/5.7
+            plt.plot(t[:size1],data0[:size1,col]-data1[:size1,col]+init_dis_1, c = colors[0], label="compare virtual 1 & 2")
     else:
-        plt.plot(t,data[:,col], c = color, label=filename)
+        print "size1 is smaller"
+elif args_num == 5:
+    init_dis_2 = int(args[4])
+
+
 var_names = header
 plt.title(var_names[col])
 plt.legend(numpoints=1,loc=1)
